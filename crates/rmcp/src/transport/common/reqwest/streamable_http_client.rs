@@ -46,20 +46,20 @@ impl StreamableHttpClient for reqwest::Client {
             return Err(StreamableHttpError::ServerDoesNotSupportSse);
         }
         let response = response.error_for_status()?;
-        match response.headers().get(reqwest::header::CONTENT_TYPE) {
-            Some(ct) => {
-                if !ct.as_bytes().starts_with(EVENT_STREAM_MIME_TYPE.as_bytes())
-                    && !ct.as_bytes().starts_with(JSON_MIME_TYPE.as_bytes())
-                {
-                    return Err(StreamableHttpError::UnexpectedContentType(Some(
-                        String::from_utf8_lossy(ct.as_bytes()).to_string(),
-                    )));
-                }
-            }
-            None => {
-                return Err(StreamableHttpError::UnexpectedContentType(None));
-            }
-        }
+        // match response.headers().get(reqwest::header::CONTENT_TYPE) {
+        //     Some(ct) => {
+        //         if !ct.as_bytes().starts_with(EVENT_STREAM_MIME_TYPE.as_bytes())
+        //             && !ct.as_bytes().starts_with(JSON_MIME_TYPE.as_bytes())
+        //         {
+        //             return Err(StreamableHttpError::UnexpectedContentType(Some(
+        //                 String::from_utf8_lossy(ct.as_bytes()).to_string(),
+        //             )));
+        //         }
+        //     }
+        //     None => {
+        //         return Err(StreamableHttpError::UnexpectedContentType(None));
+        //     }
+        // }
         let event_stream = SseStream::from_byte_stream(response.bytes_stream()).boxed();
         Ok(event_stream)
     }
@@ -144,10 +144,11 @@ impl StreamableHttpClient for reqwest::Client {
             }
             _ => {
                 // unexpected content type
-                tracing::error!("unexpected content type: {:?}", content_type);
-                Err(StreamableHttpError::UnexpectedContentType(
-                    content_type.map(|ct| String::from_utf8_lossy(ct.as_bytes()).to_string()),
-                ))
+                // tracing::error!("unexpected content type: {:?}", content_type);
+                // Err(StreamableHttpError::UnexpectedContentType(
+                //     content_type.map(|ct| String::from_utf8_lossy(ct.as_bytes()).to_string()),
+                // ))
+                Ok(StreamableHttpPostResponse::Accepted)
             }
         }
     }
